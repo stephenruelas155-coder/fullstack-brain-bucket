@@ -2,21 +2,26 @@
 import 'dotenv/config';
 // const { MongoClient, ServerApiVersion } = require('mongodb');
 import { MongoClient, ServerApiVersion } from 'mongodb';
-// const uri = "mongodb+srv://fullstack-brainbucket:lasagna@cluster0.a8iv2z8.mongodb.net/?appName=Cluster0";
 import express from 'express'
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const uri = process.env.MONGO_URI;  
 const app = express();
-const client = new MongoClient(uri, {
+const uri = process.env.MONGO_URI;  
 
-});
+app.use(express.static(join(__dirname, '../public')));
+app.use( express.json());
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
 
 async function run() {
   try {
@@ -25,9 +30,6 @@ async function run() {
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, '../public', 'hotel.html'));
-})
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();
@@ -35,32 +37,37 @@ async function run() {
 }
 run().catch(console.dir);
 
+app.get('/', (req, res) => {
+  res.sendFile(join(__dirname, '../public', 'hotel.html'));
+})
 
-app.use(express.static(join(__dirname, '../public')));
-app.use( express.json());
+app.get('/api/hello', function(req, res) {
 
-// app.get('/', (req, res) => {
-//   res.send('Hello World')
-// })
-
-app.post(
-  '/api/students',
-  function(req, res) {
-
-    console.log(
-      req.body
-    );
-
-    res.json({
-
-      received:
-        req.body
-
-    });
+    // const message = 'hello from the server as a variable';
+    // res.send(message);
+    
+    const message = {
+      message: 'hello from hard code json',
+      success: 'true'
+    };
+    res.json(message); 
+    
 
   }
 );
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000')
+app.post('/api/students', function(req, res) {
+    console.log(req.body);
+
+    res.json({
+      received:
+        req.body
+    });
+  }
+);
+
+
+
+app.listen(5500, () => {
+  console.log('Server is running on http://localhost:5500')
 })
